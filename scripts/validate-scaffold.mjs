@@ -22,6 +22,9 @@ const requiredFiles = [
   'components/trip/timeline-card.tsx',
   'components/trip/next-action-card.tsx',
   'db/schema.sql',
+  'app/api/ai/generate/route.ts',
+  'components/new-trip/generate-form.tsx',
+  'lib/ai/openai-itinerary.ts',
 ];
 
 const requiredSnippets = [
@@ -94,6 +97,16 @@ const requiredSnippets = [
     file: 'db/schema.sql',
     snippet: 'create table if not exists public.trips',
     message: 'Database schema file is missing trip table',
+  },
+  {
+    file: '.env.example',
+    snippet: 'OPENAI_BASE_URL',
+    message: 'OpenAI-compatible API base URL env is missing',
+  },
+  {
+    file: 'app/actions/ai-actions.ts',
+    snippet: 'generateItineraryWithOpenAICompatibleApi',
+    message: 'AI action is not using OpenAI-compatible API',
   },
 ];
 

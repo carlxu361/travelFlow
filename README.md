@@ -68,6 +68,9 @@ cp .env.example .env.local
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `OPENAI_BASE_URL`
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`
 
 3. 启动开发环境
 
@@ -115,3 +118,16 @@ npm run lint
 npm run typecheck
 npm run build
 ```
+
+
+## OpenAI 兼容 API 接入说明
+
+`/new` 页面已接入 `POST /api/ai/generate`，该接口使用 OpenAI Chat Completions 兼容协议：
+
+- Endpoint: `${OPENAI_BASE_URL}/chat/completions`
+- Header: `Authorization: Bearer ${OPENAI_API_KEY}`
+- Body: `model + messages`
+
+返回内容会被解析为结构化行程并在页面展示。
+
+> 注意：模型输出必须是纯 JSON（不要 markdown 代码块）；项目已内置代码块包裹内容的清洗逻辑。
