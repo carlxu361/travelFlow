@@ -17,7 +17,7 @@
 
 ```mermaid
 graph TD
-    Client[User Client (Mobile/PC)] -->|HTTPS| NextJS[Next.js App Server (Vercel)]
+    Client[User Client(Mobile/PC)] -->|HTTPS| NextJS[Next.js App Server (Vercel)]
     
     subgraph "Backend Services"
         NextJS -->|Server Actions| SupabaseDB[(Supabase PostgreSQL)]
