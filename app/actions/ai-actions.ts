@@ -3,15 +3,11 @@
 import type { GeneratedItinerary } from '@/lib/domain/trip';
 import { generateItineraryWithOpenAICompatibleApi } from '@/lib/ai/openai-itinerary';
 
-/**
- * PRD/SDD 对齐：generateItineraryAction(prompt: string)
- * 使用 OpenAI 兼容接口生成/完善结构化行程。
- */
 export async function generateItineraryAction(
   prompt: string,
   options?: {
     existingItinerary?: GeneratedItinerary;
-    refinementPrompt?: string;
+    refinementMode?: 'canvas_refine' | 'regenerate';
   },
 ) {
   if (!prompt.trim()) {
@@ -21,7 +17,7 @@ export async function generateItineraryAction(
   const { itinerary } = await generateItineraryWithOpenAICompatibleApi({
     prompt,
     existingItinerary: options?.existingItinerary,
-    refinementPrompt: options?.refinementPrompt,
+    refinementMode: options?.refinementMode,
   });
 
   return {

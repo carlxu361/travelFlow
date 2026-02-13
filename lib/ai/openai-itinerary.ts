@@ -71,6 +71,47 @@ const SYSTEM_PROMPT = `你是资深旅行规划师和行程优化师。
 固定输出 JSON Schema:
 ${OUTPUT_SCHEMA}`;
 
+export type GenerateArgs = {
+  prompt: string;
+  existingItinerary?: GeneratedItinerary;
+  refinementMode?: 'canvas_refine' | 'regenerate';
+};
+
+type OpenAIMessage = { role: 'system' | 'user'; content: string };
+
+function buildUserPrompt({ prompt, existingItinerary, refinementMode }: GenerateArgs) {
+  if (!existingItinerary || refinementMode === 'regenerate') {
+    return prompt;
+  }
+
+  return `用户初始需求：${prompt}
+
+当前已生成行程（JSON）：
+${JSON.stringify(existingItinerary)}
+
+请基于当前 JSON 进行二次完善：
+- 保留用户在画布里已修改的内容
+- 自动修复不合理时间和交通衔接
+- 对缺失字段做补全
+- 输出完整新 JSON`;
+}
+
+function getRequestConfig() {
+  const baseUrl = process.env.OPENAI_BASE_URL;
+  const apiKey = process.env.OPENAI_API_KEY;
+  const model = process.env.OPENAI_MODEL;
+
+  if (!baseUrl || !apiKey || !model) {
+    throw new Error('AI service is not configured');
+  }
+
+  return {
+    endpoint: `${baseUrl.replace(/\/$/, '')}/chat/completions`,
+    apiKey,
+    model,
+  };
+}
+
 function stripJsonFence(content: string): string {
   const trimmed = content.trim();
   if (trimmed.startsWith('```')) {
@@ -79,30 +120,13 @@ function stripJsonFence(content: string): string {
   return trimmed;
 }
 
-type GenerateArgs = {
-  prompt: string;
-  existingItinerary?: GeneratedItinerary;
-  refinementPrompt?: string;
-};
+export async function generateItineraryWithOpenAICompatibleApi(args: GenerateArgs) {
+  const { endpoint, apiKey, model } = getRequestConfig();
 
-export async function generateItineraryWithOpenAICompatibleApi({
-  prompt,
-  existingItinerary,
-  refinementPrompt,
-}: GenerateArgs) {
-  const baseUrl = process.env.OPENAI_BASE_URL;
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL;
-
-  if (!baseUrl || !apiKey || !model) {
-    throw new Error('Missing OPENAI_BASE_URL / OPENAI_API_KEY / OPENAI_MODEL');
-  }
-
-  const endpoint = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
-
-  const userPrompt = existingItinerary
-    ? `用户初始需求：${prompt}\n\n当前已生成行程（JSON）：\n${JSON.stringify(existingItinerary)}\n\n请根据以下修改意见进行二次完善，并输出完整新 JSON：\n${refinementPrompt ?? '请补充细节并优化安排'}`
-    : prompt;
+  const messages: OpenAIMessage[] = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: buildUserPrompt(args) },
+  ];
 
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -110,20 +134,12 @@ export async function generateItineraryWithOpenAICompatibleApi({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model,
-      temperature: 0.4,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt },
-      ],
-    }),
+    body: JSON.stringify({ model, temperature: 0.4, messages }),
     cache: 'no-store',
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenAI-compatible API request failed: ${response.status} ${errorText}`);
+    throw new Error(`AI upstream error: ${response.status}`);
   }
 
   const data = (await response.json()) as {
@@ -132,13 +148,55 @@ export async function generateItineraryWithOpenAICompatibleApi({
 
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
-    throw new Error('API returned empty content');
+    throw new Error('AI empty content');
   }
 
-  const itinerary = parseItineraryJson(stripJsonFence(content));
-
   return {
-    itinerary,
+    itinerary: parseItineraryJson(stripJsonFence(content)),
     rawContent: content,
   };
+}
+
+export async function requestOpenAIStream(args: GenerateArgs): Promise<Response> {
+  const { endpoint, apiKey, model } = getRequestConfig();
+
+  const messages: OpenAIMessage[] = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: buildUserPrompt(args) },
+  ];
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({ model, temperature: 0.4, stream: true, messages }),
+    cache: 'no-store',
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error(`AI stream upstream error: ${response.status}`);
+  }
+
+  return response;
+}
+
+export function parseOpenAIChunk(line: string): string {
+  if (!line.startsWith('data:')) return '';
+  const data = line.slice(5).trim();
+  if (!data || data === '[DONE]') return '';
+
+  try {
+    const parsed = JSON.parse(data) as {
+      choices?: Array<{ delta?: { content?: string } }>;
+    };
+    return parsed.choices?.[0]?.delta?.content ?? '';
+  } catch {
+    return '';
+  }
+}
+
+export function parseItineraryFromRawContent(rawContent: string) {
+  return parseItineraryJson(stripJsonFence(rawContent));
 }

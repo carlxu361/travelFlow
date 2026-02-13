@@ -110,13 +110,23 @@ const requiredSnippets = [
   },
   {
     file: 'components/new-trip/generate-form.tsx',
-    snippet: '二次完善行程',
+    snippet: '基于画布二次完善',
     message: 'Refinement UI is missing',
   },
   {
     file: 'components/new-trip/generate-form.tsx',
     snippet: 'localStorage.setItem',
     message: 'Local save capability is missing',
+  },
+  {
+    file: 'components/new-trip/generate-form.tsx',
+    snippet: 'AI 流式输出中',
+    message: 'Streaming UI is missing',
+  },
+  {
+    file: 'components/new-trip/generate-form.tsx',
+    snippet: '本地行程管理',
+    message: 'Itinerary management UI is missing',
   },
 ];
 
