@@ -104,9 +104,19 @@ const requiredSnippets = [
     message: 'OpenAI-compatible API base URL env is missing',
   },
   {
-    file: 'app/actions/ai-actions.ts',
-    snippet: 'generateItineraryWithOpenAICompatibleApi',
-    message: 'AI action is not using OpenAI-compatible API',
+    file: 'lib/ai/openai-itinerary.ts',
+    snippet: '固定输出 JSON Schema',
+    message: 'AI prompt is missing fixed output schema requirement',
+  },
+  {
+    file: 'components/new-trip/generate-form.tsx',
+    snippet: '二次完善行程',
+    message: 'Refinement UI is missing',
+  },
+  {
+    file: 'components/new-trip/generate-form.tsx',
+    snippet: 'localStorage.setItem',
+    message: 'Local save capability is missing',
   },
 ];
 

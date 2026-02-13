@@ -122,7 +122,7 @@ npm run build
 
 ## OpenAI 兼容 API 接入说明
 
-`/new` 页面已接入 `POST /api/ai/generate`，该接口使用 OpenAI Chat Completions 兼容协议：
+`/new` 页面已接入 `POST /api/ai/generate`，支持“首次生成 + 基于既有行程二次完善”，并使用 OpenAI Chat Completions 兼容协议：
 
 - Endpoint: `${OPENAI_BASE_URL}/chat/completions`
 - Header: `Authorization: Bearer ${OPENAI_API_KEY}`

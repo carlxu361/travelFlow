@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
+import type { GeneratedItinerary } from '@/lib/domain/trip';
 import { generateItineraryWithOpenAICompatibleApi } from '@/lib/ai/openai-itinerary';
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { prompt?: string };
+  const body = (await request.json()) as {
+    prompt?: string;
+    refinementPrompt?: string;
+    existingItinerary?: GeneratedItinerary;
+  };
   const prompt = body.prompt?.trim();
 
   if (!prompt) {
@@ -10,7 +15,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await generateItineraryWithOpenAICompatibleApi(prompt);
+    const result = await generateItineraryWithOpenAICompatibleApi({
+      prompt,
+      existingItinerary: body.existingItinerary,
+      refinementPrompt: body.refinementPrompt,
+    });
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
