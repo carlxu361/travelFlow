@@ -13,6 +13,7 @@
 * **部署:** Vercel (前端/API) + Supabase (数据库)。
 
 ## 2. 系统架构图 (Architecture)
+<img width="2048" height="1453" alt="image" src="https://github.com/user-attachments/assets/f20f431e-fa58-4250-933e-553bd6d50c86" />
 
 ```mermaid
 graph TD
