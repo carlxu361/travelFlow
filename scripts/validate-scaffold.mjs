@@ -15,6 +15,13 @@ const requiredFiles = [
   'postcss.config.mjs',
   'tsconfig.json',
   '.env.example',
+  'app/actions/trip-actions.ts',
+  'app/actions/ai-actions.ts',
+  'lib/domain/trip.ts',
+  'lib/dify/schema.ts',
+  'components/trip/timeline-card.tsx',
+  'components/trip/next-action-card.tsx',
+  'db/schema.sql',
 ];
 
 const requiredSnippets = [
@@ -72,6 +79,21 @@ const requiredSnippets = [
     file: 'lib/supabase/client.ts',
     snippet: 'createSupabaseBrowserClient',
     message: 'Supabase client factory is missing',
+  },
+  {
+    file: 'app/actions/trip-actions.ts',
+    snippet: 'export async function getTripDetails',
+    message: 'Trip server actions are missing',
+  },
+  {
+    file: 'app/actions/ai-actions.ts',
+    snippet: 'export async function generateItineraryAction',
+    message: 'AI server action is missing',
+  },
+  {
+    file: 'db/schema.sql',
+    snippet: 'create table if not exists public.trips',
+    message: 'Database schema file is missing trip table',
   },
 ];
 

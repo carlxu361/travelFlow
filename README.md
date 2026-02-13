@@ -10,12 +10,17 @@
 - ✅ Lucide 图标库接入
 - ✅ 按 PRD/SDD 预置核心路由：`/`、`/new`、`/trip/[id]`、`/trip/[id]/share`
 - ✅ 提供与文档数据库结构对齐的 Supabase 类型定义文件
+- ✅ 提供 Server Actions 占位实现：`createTrip`、`getTripDetails`、`deleteTrip`、`generateItineraryAction`
+- ✅ 新增 `db/schema.sql`，可直接复制到 Supabase SQL Editor 执行
 
 ## 目录结构
 
 ```bash
 .
 ├── app/
+│   ├── actions/
+│   │   ├── ai-actions.ts
+│   │   └── trip-actions.ts
 │   ├── new/page.tsx
 │   ├── trip/[id]/page.tsx
 │   ├── trip/[id]/share/page.tsx
@@ -23,8 +28,16 @@
 │   ├── layout.tsx
 │   └── page.tsx
 ├── components/
-│   └── site-header.tsx
+│   ├── site-header.tsx
+│   └── trip/
+│       ├── next-action-card.tsx
+│       └── timeline-card.tsx
+├── db/
+│   └── schema.sql
 ├── lib/
+│   ├── dify/schema.ts
+│   ├── domain/trip.ts
+│   ├── mock/trip.ts
 │   └── supabase/client.ts
 ├── types/
 │   └── supabase.ts
@@ -70,12 +83,18 @@ npm run dev
 - 已覆盖表：`profiles`、`trips`、`days`、`events`、`memories`
 - 包含 `Row / Insert / Update / Relationships` 类型，可直接用于查询与写入约束。
 
+## 当前实现说明
+
+- `/trip/[id]` 已实现 Next Action + TimelineCard 的时间线展示逻辑（使用 mock 数据）。
+- `app/actions/ai-actions.ts` 提供了 `generateItineraryAction` 占位实现，并通过 `lib/dify/schema.ts` 做 JSON 解析约束。
+- `db/schema.sql` 与 SDD 表结构保持一致，可作为第一版建表脚本。
+
 ## 下一步建议
 
-- 接入 Server Actions：`generateItineraryAction(prompt: string)`
-- 将 Dify API 输出落库到 `trips/days/events`
-- 添加 Timeline 组件与地图组件（高德 API）
-- 增加 Auth + RLS 验证流程
+- 将 `app/actions/trip-actions.ts` 从 mock 切换为 Supabase 真实读写。
+- 接入 Dify API（Blocking Mode），替换 `mockDifyResponse`。
+- 在 `/trip/[id]` 中接入地图（高德 API）实现 Timeline 与地图联动。
+- 增加 Auth + RLS + 分享页 token 校验流程。
 
 
 ## 测试与排障
